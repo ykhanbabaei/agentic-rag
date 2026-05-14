@@ -3,15 +3,13 @@ langchain-core
 qdrant-client
 langchain-community
 langchain-text-splitters
-unstructured[md]
 langchain-huggingface
-sentence-transformers
 langchain-qdrant
-sentence-transformers
 fastapi[standard]
 python-dotenv
 gunicorn
 uvicorn
-langchain-classic
 langchain-openai
 starlette
+pypdf
+flashrank

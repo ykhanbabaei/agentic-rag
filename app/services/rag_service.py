@@ -1,12 +1,12 @@
 from typing import Sequence
 
-from langchain_classic.retrievers.document_compressors import CrossEncoderReranker
-from langchain_community.cross_encoders import HuggingFaceCrossEncoder
+from langchain_classic.retrievers import ContextualCompressionRetriever
+from langchain_community.document_compressors import FlashrankRerank
 from qdrant_client.models import Distance, VectorParams
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient
 import os
@@ -27,13 +27,13 @@ class RagService:
 
 
     def retrieve_documents(self, query: str) -> Sequence[Document]:
-        docs = self.vector_store.similarity_search_with_score(query)
-        seq_docs = [doc for doc,_ in docs]
-
-        # reranker
-        cross_encoder = HuggingFaceCrossEncoder(model_name="cross-encoder/ms-marco-MiniLM-L-6-v2")
-        reranker = CrossEncoderReranker(model=cross_encoder, top_n=2)
-        return reranker.compress_documents(documents=seq_docs, query=query)
+        retriever = self.vector_store.as_retriever()
+        compressor = FlashrankRerank(top_n=2)
+        compression_retriever = ContextualCompressionRetriever(
+            base_compressor=compressor, base_retriever=retriever
+        )
+        compressed_docs = compression_retriever.invoke(input=query)
+        return compressed_docs
 
     def load_chunk_store(self):
         logger.info("indexing data started")
@@ -52,7 +52,9 @@ class RagService:
 
     @staticmethod
     def create_vector_store():
-        embedding = HuggingFaceEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+        embedding = HuggingFaceEndpointEmbeddings(
+            model="BAAI/bge-small-en-v1.5",
+        )
         client = QdrantClient(path=os.getenv('QDRANT_STORAGE_PATH'))
         return QdrantVectorStore(
             client=client,
@@ -65,7 +67,9 @@ class RagService:
         client = QdrantClient(path=os.getenv('QDRANT_STORAGE_PATH'))
         if client.collection_exists(collection_name=os.getenv('COLLECTION')):
             return False
-        embedding = HuggingFaceEmbeddings(model_name="BAAI/bge-small-en-v1.5")
+        embedding = HuggingFaceEndpointEmbeddings(
+            model="BAAI/bge-small-en-v1.5",
+        )
         vector_size = len(embedding.embed_query("sample text"))
         client.create_collection(collection_name=os.getenv('COLLECTION'), vectors_config = VectorParams(size=vector_size, distance=Distance.COSINE))
         logger.info("new collection created")
