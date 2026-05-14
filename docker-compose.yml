@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  agenticrag:
+    container_name: agentic_rag_container
+    image: softmind/agentic-rag
+    build: .
+    restart: always
+    environment:
+      HF_TOKEN: huggingfaceApiKey
+      OPENAI_API_KEY: openAiApiKey
+      QDRANT_STORAGE_PATH: storagePath
+      COLLECTION: collectionNameInStorage
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+
