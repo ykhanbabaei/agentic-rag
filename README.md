@@ -62,6 +62,7 @@ To persist embedded data in vector database, storage path is required.
    ```bash
    QDRANT_STORAGE_PATH="/your/storage/path"
    ```
+By default, storage path inside your docker is `/app/db/qdrant_db_storage`
 
 ## 🚀 Deployment
 
@@ -74,3 +75,7 @@ docker-compose up
 ```
 
 This command creates the docker image and deploy and run it.
+
+## How to use
+After deployment, The Chatbot is accessible in `http://localhost:8000`.
+The Chatbot answers only the questions regarding [`sample_company_policies_rag.pdf`](./sample_data/pdf/sample_company_policies_rag.pdf) document.
