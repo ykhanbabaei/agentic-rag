@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class Agent:
+class ChatAgent:
     def __init__(self):
         self.agent = None
         self.create_agent()
@@ -23,15 +23,14 @@ class Agent:
         from langchain.agents import create_agent
         self.agent = create_agent(model=model, tools=tools, system_prompt=system_prompt)
 
-    def chat(self, query: str):
+    async def achat(self, query: str):
         logger.info("chat service called")
-        stream = self.agent.stream(
-            {"messages": [{"role": "user", "content": query}]},
-            stream_mode="values",
-        )
         final_answer_parts = []
         seen_len = 0
-        for chunk in stream:
+        async for chunk in self.agent.astream(
+            {"messages": [{"role": "user", "content": query}]},
+            stream_mode="values",
+        ):
             # answer += event["messages"][-1].pretty_repr()
             messages = chunk.get("messages", [])
             if not messages:
@@ -52,10 +51,10 @@ class Agent:
 
 
 # tools
-@tool(description="retrieve context from Nike sample_data source")
+@tool(description="retrieve data from context source")
 def data_retriever(q: str):
     """
-    retrieve context from Nike sample_data source
+    retrieve data from context source
     """
     docs = rag_service.retrieve_documents(query=q)
     logger.info(f"data retrieval tool called and loaded {len(docs)} documents")

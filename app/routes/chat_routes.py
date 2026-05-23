@@ -1,15 +1,14 @@
 from fastapi import APIRouter
-from starlette.staticfiles import StaticFiles
 
-from app.agent.chat_agent import Agent
+from app.agent.chat_agent import ChatAgent
 
 router = APIRouter()
 
-agent = Agent()
+agent = ChatAgent()
 
 @router.get("/chat/{query}")
 async def chat(query: str):
-    return agent.chat(query)
+    return await agent.achat(query)
 
 
 @router.get("/health")
