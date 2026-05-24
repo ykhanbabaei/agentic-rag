@@ -40,7 +40,7 @@ const Chatbot: React.FC = () => {
   // Simulate AI response (replace with actual API call)
   const getBotResponse = async (userMessage: string): Promise<string> => {
     // Simulate API delay
-    const response = await fetch('http://127.0.0.1:8000/chat/' + userMessage, {
+    const response = await fetch('/chat/' + userMessage, {
       method: 'GET'
     });
     const data = await response.text();
@@ -108,6 +108,19 @@ const Chatbot: React.FC = () => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+    const formatText = (text: string) => {
+        // Remove double quotes
+        let cleaned = text.replace(/"/g, '');
+
+        // Split by \n and map to array with <br> elements
+        return cleaned.split(/\\n/).map((line: string, index: number) => (
+            <React.Fragment key={index}>
+                {line}
+                {index < cleaned.split(/\\n/).length - 1 && <br />}
+            </React.Fragment>
+        ));
+    };
+
   return (
     <div className="chatbot-container">
       <div className="messages-container">
@@ -120,7 +133,7 @@ const Chatbot: React.FC = () => {
               {message.sender === 'user' ? '👤' : '🤖'}
             </div>
             <div className="message-bubble">
-              <div className="message-text">{message.text}</div>
+              <div className="message-text"> {formatText(message.text)}</div>
               <div className="message-time">{formatTime(message.timestamp)}</div>
             </div>
           </div>
